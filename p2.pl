@@ -18,25 +18,41 @@ puente(p7, p2, 3).
 puente(p2, p3, 7).
 
 
-% Predicado principal para encontrar todos los caminos desde un planeta S hasta el centro galáctico c
-camino(S, _Res) :-  % Usamos _Res para ignorar el resultado final
-    findall(Ruta, buscar_camino(S, c, [S], Ruta), Rutas),  % Encuentra todos los caminos
-    maplist(invertir_y_imprimir, Rutas).  % Aplica invertir e imprimir a cada camino
+camino(S, _Res) :-  
+    findall(Ruta, buscar_camino(S, c, [S], Ruta), Rutas),  
+    maplist(invertir_y_imprimir, Rutas). 
 
-% Predicado para invertir y mostrar cada lista en el formato deseado
+
 invertir_y_imprimir(Ruta) :-
-    invertir(Ruta, RutaInvertida),  % Invierte el camino
-    format('RES = ~w.~n', [RutaInvertida]).  % Imprime la lista invertida en el formato solicitado
+    invertir(Ruta, RutaInvertida),  
+    format('RES = ~w.~n', [RutaInvertida]).  
 
-% Definición para invertir una lista
-invertir([], []).  % Caso base: una lista vacía se invierte a sí misma
+
+invertir([], []).  
 invertir([Cabeza|Cola], Invertida) :- 
     invertir(Cola, ColaInvertida), 
     append(ColaInvertida, [Cabeza], Invertida).
 
-% Búsqueda recursiva en profundidad para encontrar todos los caminos
-buscar_camino(S, S, Cam, [S|Cam]).  % Cuando llegamos al centro, añadimos el planeta de inicio al camino
+
+buscar_camino(S, S, Cam, [S|Cam]).  
 buscar_camino(S, Dest, Visitados, Res) :- 
-    puente(S, P, _),                 % Busca los planetas conectados por puentes
-    \+ member(P, Visitados),         % Evita ciclos y repeticiones
+    puente(S, P, _),                 
+    \+ member(P, Visitados),         
     buscar_camino(P, Dest, [P|Visitados], Res).
+
+
+combustible(S, V, _Res) :- 
+    findall(Ruta, calcular_combustible(S, V, [[S, V]], Ruta), Rutas),
+    maplist(imprimir_ruta, Rutas).
+
+calcular_combustible(c, _, Cam, Cam). 
+calcular_combustible(S, V, Cam, Res) :-
+    puente(S, P, W),              
+    VRestante is V - W,           
+    VRestante >= 0,               
+    \+ member([P, _], Cam),       
+    calcular_combustible(P, VRestante, [[P, VRestante] | Cam], Res).
+
+imprimir_ruta(Ruta) :-
+    reverse(Ruta, RutaInvertida), 
+    format('RES = ~w.~n', [RutaInvertida]).
